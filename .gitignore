@@ -1,0 +1,17 @@
+node_modules
+*.log
+.env.local
+.env.dev
+.env.prod
+openapi-docs.yml
+
+# mac
+.DS_Store
+
+# OS or Editor folders
+.idea
+.vscode
+
+#prisma
+prisma/mssql
+prisma/postgres
