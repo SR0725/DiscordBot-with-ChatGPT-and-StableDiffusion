@@ -10,22 +10,26 @@ export interface Message {
   content: string;
 }
 const userHistory = new Map<string, Message[]>();
+
+// 新增歷史紀錄，歷史紀錄不會超過6次
 function addHistory(
   role: "system" | "assistant" | "user",
   userId: string,
   message: string
 ) {
-  if (!userHistory.has(userId)) {
-    userHistory.set(userId, []);
-  }
-
-  const history = userHistory.get(userId) as Message[];
-  history.push({
+  const messages = userHistory.get(userId) || [];
+  messages.push({
     role,
     content: message,
   });
+  if (messages.length > parseInt(process.env.CHATGPT_MAX_TALK_LEN as string)) {
+    messages.shift();
+  }
+  userHistory.set(userId, messages);
+}
 
-  userHistory.set(userId, history);
+export function resetHistory(userId: string) {
+  userHistory.delete(userId);
 }
 
 interface ChatWithGPT {

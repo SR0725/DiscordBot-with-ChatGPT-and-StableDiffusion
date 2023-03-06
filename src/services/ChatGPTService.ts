@@ -1,6 +1,6 @@
 import BotCommand from "@/models/BotCommand";
 import { BotService, BotSubService } from "@/models/BotService";
-import chatWithGPT, { Message } from "@/utils/chatGPT";
+import chatWithGPT, { Message, resetHistory } from "@/utils/chatGPT";
 
 const systemMessage = {
   role: "system",
@@ -20,31 +20,34 @@ const historyClearCommand: BotCommand = {
   description: "清除歷史紀錄",
 };
 
-const historyClearSubService: BotSubService<BotCommand> = (bot, command)=>{
+const historyClearSubService: BotSubService<BotCommand> = (bot, command) => {
   bot.on("interactionCreate", async (interaction) => {
     try {
       if (!interaction.isChatInputCommand()) return;
 
       if (interaction.commandName === command.name) {
+        resetHistory(interaction.user.id);
         await interaction.reply("已清除你的歷史紀錄，請重新開始對話");
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error(error);
+    }
   });
-}
+};
 
 const chatSubService: BotSubService = (bot) => {
   bot.on("messageCreate", async (message) => {
-    try {
-      if (message.author.bot) return;
+    if (message.author.bot) return;
 
-      // 如果是要求繪製圖片的訊息，就回應
-      if (message.content.startsWith("<@1081639245472612372>")) {
-        const rawInput = message.content.replace("<@1081639245472612372>", "");
-        if (!rawInput) {
-          await message.reply("請輸入文字");
-          return;
-        }
-        const msg = await message.reply("FillCast 正在思考…");
+    // 如果是要求繪製圖片的訊息，就回應
+    if (message.content.startsWith("<@1081639245472612372>")) {
+      const rawInput = message.content.replace("<@1081639245472612372>", "");
+      if (!rawInput) {
+        await message.reply("請輸入文字");
+        return;
+      }
+      const msg = await message.reply("FillCast 正在思考…");
+      try {
         const reply = await chatWithGPT({
           prompt: rawInput,
           userId: message.author.id,
@@ -52,8 +55,12 @@ const chatSubService: BotSubService = (bot) => {
           systemMessage: systemMessage as Message,
         });
         await msg.edit(reply);
+      } catch (error) {
+        resetHistory(msg.author.id);
+        await msg.edit("發生了未知的錯誤，ChatGPT拒絕回應");
+        console.error(error);
       }
-    } catch (error) {}
+    }
   });
 };
 
