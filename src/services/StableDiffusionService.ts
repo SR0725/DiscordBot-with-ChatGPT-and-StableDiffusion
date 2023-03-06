@@ -1,6 +1,8 @@
-import { BotService } from "@/models/BotService";
+import BotCommand from "@/models/BotCommand";
+import { BotService, BotSubService } from "@/models/BotService";
+import chatWithGPT, { Message } from "@/utils/chatGPT";
 import { render } from "@/utils/stableDiffusion";
-import chatWithGPT, { Message } from "@/utils/chatGpt";
+import { SlashCommandBuilder } from "discord.js";
 
 const renderMessage = {
   role: "system",
@@ -14,7 +16,18 @@ const renderMessage = {
     "我希望你能根據下面的IDEA，精確地撰寫關於該IDEA的英文詳細提示。請遵循範例提示的結構，即簡短描述場景，然後使用逗號分隔的修飾語改變情緒、風格、燈光等等。" +
     "並且請直接給我英文指令，不需要其他多餘的文字以及解釋，只需要給一個指令幾可,",
 };
-const service: BotService = (bot, command) => {
+
+const gptDrawCommand = new SlashCommandBuilder()
+  .setName("gpt-draw")
+  .setDescription("使用ChatGPT 生成指令並讓 stable diffusion 生成圖片")
+  .addStringOption((option: any) =>
+    option
+      .setName("prompt")
+      .setDescription("輸入任何圖片說明")
+      .setRequired(true)
+  );
+
+const gptDrawSubService: BotSubService<BotCommand> = (bot, command) => {
   bot.on("interactionCreate", async (interaction) => {
     try {
       if (!interaction.isChatInputCommand()) return;
@@ -37,13 +50,111 @@ const service: BotService = (bot, command) => {
         await interaction.editReply(
           "FillCast 正在繪製… \n原文:" + prompt + "\n咒術轉換:" + reply
         );
-        const attachment = await render(reply);
+        const attachment = await render({
+          prompt: reply,
+        });
         await interaction.editReply({
           files: [attachment],
         });
       }
     } catch (error) {}
   });
+};
+
+const drawCommand = new SlashCommandBuilder()
+  .setName("draw")
+  .setDescription("使用stable diffusion 生成圖片")
+  .addStringOption((option: any) =>
+    option
+      .setName("prompt")
+      .setDescription("輸入 stable diffusion prompt")
+      .setRequired(true)
+  )
+  .addNumberOption((option: any) =>
+    option
+      .setName("width")
+      .setDescription(
+        "輸入圖片寬度，必須小於 512，否則 Ray 的電腦會炸掉(默認 512)"
+      )
+  )
+  .addNumberOption((option: any) =>
+    option
+      .setName("height")
+      .setDescription(
+        "輸入圖片高度，必須小於 512，否則 Ray 的電腦會炸掉(默認 512)"
+      )
+  )
+  .addNumberOption((option: any) =>
+    option
+      .setName("steps")
+      .setDescription("輸入圖片繪製精度，更高更細膩，必須小於50(默認 50)")
+  )
+  .addStringOption((option: any) =>
+    option.setName("sampler_index").setDescription("sampler_index(默認 Euler)")
+  )
+  .addNumberOption((option: any) =>
+    option.setName("cfg_scale").setDescription("cfg_scale(默認 7)")
+  )
+  .addStringOption((option: any) =>
+    option
+      .setName("styles")
+      .setDescription("styles，可以使用英文逗號','分隔不同的風格")
+  );
+
+const drawSubService: BotSubService<BotCommand> = (bot, command) => {
+  bot.on("interactionCreate", async (interaction) => {
+    try {
+      if (!interaction.isChatInputCommand()) return;
+
+      if (interaction.commandName === command.name) {
+        const rawPrompt = interaction.options.getString("prompt");
+        const rawWidth = interaction.options.getNumber("width");
+        const rawHeight = interaction.options.getNumber("height");
+        const rawSteps = interaction.options.getNumber("steps");
+        const rawSampler_index = interaction.options.getString("sampler_index");
+        const rawCfg_scale = interaction.options.getNumber("cfg_scale");
+        const rawStyles = interaction.options.getString("styles");
+
+        if (!rawPrompt) {
+          await interaction.reply("請輸入文字");
+          return;
+        }
+
+        const renderProps = {
+          prompt: rawPrompt,
+          width: rawWidth ? rawWidth : 512,
+          height: rawHeight ? rawHeight : 512,
+          steps: rawSteps ? rawSteps : 50,
+          sampler_index: rawSampler_index || "Euler",
+          cfg_scale: rawCfg_scale ? rawCfg_scale : 7,
+          styles: rawStyles ? rawStyles.split(",") : [],
+        };
+
+        if (renderProps.width > 512 || renderProps.height > 512) {
+          await interaction.reply("圖片寬度或高度不能超過512");
+          return;
+        }
+
+        if (renderProps.steps > 50) {
+          await interaction.reply("圖片繪製精度不能超過50");
+          return;
+        }
+
+        await interaction.reply("FillCast 正在繪製…");
+        const attachment = await render(renderProps);
+        await interaction.editReply({
+          files: [attachment],
+        });
+      }
+    } catch (error) {}
+  });
+};
+
+const service: BotService = (bot) => {
+  gptDrawSubService(bot, gptDrawCommand);
+  drawSubService(bot, drawCommand);
+
+  return [gptDrawCommand, drawCommand];
 };
 
 export default service;

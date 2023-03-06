@@ -1,9 +1,8 @@
-import { registService, registCommand } from "./utils/bot";
-import HealthCheckRouter from "./routes/HealthCheckRouter";
-import ChatGPTRouter from "./routes/ChatGPTRouter";
-import StableDiffusionRouter from "./routes/StableDiffusionRouter";
+import { registService, registCommands } from "./utils/bot";
+import ChatGPTService from "./services/ChatGPTService";
+import StableDiffusionService from "./services/StableDiffusionService";
 
-registService(HealthCheckRouter);
-registService(ChatGPTRouter);
-registService(StableDiffusionRouter);
-registCommand();
+
+registService(ChatGPTService);
+registService(StableDiffusionService);
+registCommands();

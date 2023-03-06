@@ -1,6 +1,7 @@
-import { BotRouters } from "@/models/BotRouter";
+import {BotService} from "@/models/BotService";
 import BotCommand from "@/models/BotCommand";
 import { REST, Routes, Client, GatewayIntentBits } from "discord.js";
+
 const bot = new Client({
   intents: [
     GatewayIntentBits.DirectMessages,
@@ -12,20 +13,18 @@ const bot = new Client({
 const rest = new REST({ version: "10" }).setToken(
   process.env.DISCORD_BOT_TOKEN as string
 );
+
+export function registService(botService: BotService) {
+  addCommands(botService(bot));
+}
+
 const commands: BotCommand[] = [];
-
-export function registService(botRouter: BotRouters) {
-  botRouter.forEach((useService, withCommand) => {
-    useService(bot, withCommand);
-    addCommand(withCommand);
-  });
+function addCommands(newCommands?: BotCommand[]) {
+  if(!newCommands) return;
+  commands.push(...newCommands);
 }
 
-function addCommand(command: BotCommand) {
-  commands.push(command);
-}
-
-export async function registCommand() {
+export async function registCommands() {
   try {
     console.log("Started refreshing application (/) commands.");
 
