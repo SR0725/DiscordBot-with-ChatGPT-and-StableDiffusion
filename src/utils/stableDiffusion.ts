@@ -3,6 +3,7 @@ import axios from "axios";
 
 interface RenderProps {
   prompt: string;
+  negative_prompt?: string;
   width?: number;
   height?: number;
   steps?: number;
@@ -12,6 +13,7 @@ interface RenderProps {
 }
 export async function render({
   prompt,
+  negative_prompt,
   width,
   height,
   steps,
@@ -21,6 +23,7 @@ export async function render({
 }: RenderProps) {
   const request = await axios.post("http://127.0.0.1:7860/sdapi/v1/txt2img", {
     prompt,
+    negative_prompt: negative_prompt || "",
     width: width || 512,
     height: height || 512,
     steps: steps || 50,

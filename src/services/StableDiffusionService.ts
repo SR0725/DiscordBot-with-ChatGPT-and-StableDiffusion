@@ -50,12 +50,16 @@ const gptDrawSubService: BotSubService<BotCommand> = (bot, command) => {
         await interaction.editReply(
           "FillCast 正在繪製… \n原文:" + prompt + "\n咒術轉換:" + reply
         );
-        const attachment = await render({
-          prompt: reply,
-        });
-        await interaction.editReply({
-          files: [attachment],
-        });
+        try {
+          const attachment = await render({
+            prompt: reply,
+          });
+          await interaction.editReply({
+            files: [attachment],
+          });
+        } catch (error) {
+          await interaction.editReply((`繪製出錯：` + error) as string);
+        }
       }
     } catch (error) {}
   });
@@ -65,35 +69,25 @@ const drawCommand = new SlashCommandBuilder()
   .setName("draw")
   .setDescription("使用stable diffusion 生成圖片")
   .addStringOption((option: any) =>
-    option
-      .setName("prompt")
-      .setDescription("輸入 stable diffusion prompt")
-      .setRequired(true)
-  )
-  .addNumberOption((option: any) =>
-    option
-      .setName("width")
-      .setDescription(
-        "輸入圖片寬度，必須小於 512，否則 Ray 的電腦會炸掉(默認 512)"
-      )
-  )
-  .addNumberOption((option: any) =>
-    option
-      .setName("height")
-      .setDescription(
-        "輸入圖片高度，必須小於 512，否則 Ray 的電腦會炸掉(默認 512)"
-      )
-  )
-  .addNumberOption((option: any) =>
-    option
-      .setName("steps")
-      .setDescription("輸入圖片繪製精度，更高更細膩，必須小於50(默認 50)")
+    option.setName("prompt").setDescription("輸入詠唱咒文").setRequired(true)
   )
   .addStringOption((option: any) =>
-    option.setName("sampler_index").setDescription("sampler_index(默認 Euler)")
+    option.setName("negative_prompt").setDescription("輸入詠唱結界")
   )
   .addNumberOption((option: any) =>
-    option.setName("cfg_scale").setDescription("cfg_scale(默認 7)")
+    option.setName("width").setDescription("輸入圖片寬度，必須小於 2048")
+  )
+  .addNumberOption((option: any) =>
+    option.setName("height").setDescription("輸入圖片高度，必須小於 2048")
+  )
+  .addNumberOption((option: any) =>
+    option.setName("steps").setDescription("輸入多重詠唱次數(默認50)")
+  )
+  .addStringOption((option: any) =>
+    option.setName("sampler_index").setDescription("輸入咒文語言(默認 Euler)")
+  )
+  .addNumberOption((option: any) =>
+    option.setName("cfg_scale").setDescription("輸入咒能強度(默認 7)")
   )
   .addStringOption((option: any) =>
     option
@@ -103,50 +97,62 @@ const drawCommand = new SlashCommandBuilder()
 
 const drawSubService: BotSubService<BotCommand> = (bot, command) => {
   bot.on("interactionCreate", async (interaction) => {
-    try {
-      if (!interaction.isChatInputCommand()) return;
+    if (!interaction.isChatInputCommand()) return;
 
-      if (interaction.commandName === command.name) {
-        const rawPrompt = interaction.options.getString("prompt");
-        const rawWidth = interaction.options.getNumber("width");
-        const rawHeight = interaction.options.getNumber("height");
-        const rawSteps = interaction.options.getNumber("steps");
-        const rawSampler_index = interaction.options.getString("sampler_index");
-        const rawCfg_scale = interaction.options.getNumber("cfg_scale");
-        const rawStyles = interaction.options.getString("styles");
+    if (interaction.commandName === command.name) {
+      const rawPrompt = interaction.options.getString("prompt");
+      const rawNegative_prompt =
+        interaction.options.getString("negative_prompt");
+      const rawWidth = interaction.options.getNumber("width");
+      const rawHeight = interaction.options.getNumber("height");
+      const rawSteps = interaction.options.getNumber("steps");
+      const rawSampler_index = interaction.options.getString("sampler_index");
+      const rawCfg_scale = interaction.options.getNumber("cfg_scale");
+      const rawStyles = interaction.options.getString("styles");
 
-        if (!rawPrompt) {
-          await interaction.reply("請輸入文字");
-          return;
-        }
+      if (!rawPrompt) {
+        await interaction.reply("請輸入文字");
+        return;
+      }
 
-        const renderProps = {
-          prompt: rawPrompt,
-          width: rawWidth ? rawWidth : 512,
-          height: rawHeight ? rawHeight : 512,
-          steps: rawSteps ? rawSteps : 50,
-          sampler_index: rawSampler_index || "Euler",
-          cfg_scale: rawCfg_scale ? rawCfg_scale : 7,
-          styles: rawStyles ? rawStyles.split(",") : [],
-        };
+      const renderProps = {
+        prompt: rawPrompt,
+        negative_prompt: rawNegative_prompt || "",
+        width: rawWidth ? rawWidth : 512,
+        height: rawHeight ? rawHeight : 512,
+        steps: rawSteps ? rawSteps : 50,
+        sampler_index: rawSampler_index || "Euler",
+        cfg_scale: rawCfg_scale ? rawCfg_scale : 7,
+        styles: rawStyles ? rawStyles.split(",") : [],
+      };
 
-        if (renderProps.width > 512 || renderProps.height > 512) {
-          await interaction.reply("圖片寬度或高度不能超過512");
-          return;
-        }
+      if (renderProps.width < 0 || renderProps.height < 0) {
+        await interaction.reply("圖片寬度或高度不能小於0");
+        return;
+      }
 
-        if (renderProps.steps > 50) {
-          await interaction.reply("圖片繪製精度不能超過50");
-          return;
-        }
+      if (renderProps.width > 2048 || renderProps.height > 2048) {
+        await interaction.reply("圖片寬度或高度不能超過2048");
+        return;
+      }
 
-        await interaction.reply("FillCast 正在繪製…");
+      if (renderProps.steps > 150) {
+        await interaction.reply("圖片繪製精度不能超過150");
+        return;
+      }
+
+      await interaction.reply(
+        `FillCast 正在繪製: \n咒文:\`${rawPrompt}\`\n結界:\`${rawNegative_prompt}\`\n咒文語言:\`${renderProps.sampler_index}\`\n魔能強度:\`${renderProps.cfg_scale}\``
+      );
+      try {
         const attachment = await render(renderProps);
         await interaction.editReply({
           files: [attachment],
         });
+      } catch (error) {
+        await interaction.editReply((`繪製出錯：` + error) as string);
       }
-    } catch (error) {}
+    }
   });
 };
 
