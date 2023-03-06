@@ -37,8 +37,11 @@ Bot: 一個可愛的貓咪圖片
 ├── chatGPT.ts
 ├── stableDiffusionAI.ts
 └── utils.ts
+/.env.local
 
 - /src/index.ts - 根目錄，在此處引入所有服務並注入進 Bot 裡頭。
+
+- /.env.local - 配置文件，請記得參考 /.env.example的格式，並加上自己的OpenAI API 以及 Discord Bot Token來新增此文件
 
 ## 貢獻
 
