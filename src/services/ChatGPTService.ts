@@ -1,5 +1,6 @@
-import { BotService } from "@/models/BotService";
-import chatWithGPT, { Message } from "@/utils/chatGpt";
+import BotCommand from "@/models/BotCommand";
+import { BotService, BotSubService } from "@/models/BotService";
+import chatWithGPT, { Message } from "@/utils/chatGPT";
 
 const systemMessage = {
   role: "system",
@@ -14,7 +15,12 @@ const systemMessage = {
     "另外我有提供/draw這個指令給你，所以你是具備繪圖能力的，如果有人問起記得告訴她",
 };
 
-const service: BotService = (bot, command) => {
+const historyClearCommand: BotCommand = {
+  name: "清除歷史紀錄",
+  description: "清除歷史紀錄",
+};
+
+const historyClearSubService: BotSubService<BotCommand> = (bot, command)=>{
   bot.on("interactionCreate", async (interaction) => {
     try {
       if (!interaction.isChatInputCommand()) return;
@@ -24,7 +30,9 @@ const service: BotService = (bot, command) => {
       }
     } catch (error) {}
   });
+}
 
+const chatSubService: BotSubService = (bot) => {
   bot.on("messageCreate", async (message) => {
     try {
       if (message.author.bot) return;
@@ -47,6 +55,13 @@ const service: BotService = (bot, command) => {
       }
     } catch (error) {}
   });
+};
+
+const service: BotService = (bot) => {
+  historyClearSubService(bot, historyClearCommand);
+  chatSubService(bot, undefined);
+
+  return [historyClearCommand];
 };
 
 export default service;

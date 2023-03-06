@@ -1,6 +1,8 @@
-import { BotService } from "@/models/BotService";
+import BotCommand from "@/models/BotCommand";
+import { BotService, BotSubService } from "@/models/BotService";
+import chatWithGPT, { Message } from "@/utils/chatGPT";
 import { render } from "@/utils/stableDiffusion";
-import chatWithGPT, { Message } from "@/utils/chatGpt";
+import { SlashCommandBuilder } from "discord.js";
 
 const renderMessage = {
   role: "system",
@@ -14,7 +16,15 @@ const renderMessage = {
     "我希望你能根據下面的IDEA，精確地撰寫關於該IDEA的英文詳細提示。請遵循範例提示的結構，即簡短描述場景，然後使用逗號分隔的修飾語改變情緒、風格、燈光等等。" +
     "並且請直接給我英文指令，不需要其他多餘的文字以及解釋，只需要給一個指令幾可,",
 };
-const service: BotService = (bot, command) => {
+
+const drawCommand = new SlashCommandBuilder()
+  .setName("draw")
+  .setDescription("使用 stable diffusion 生成圖片")
+  .addStringOption((option: any) =>
+    option.setName("prompt").setDescription("輸入文字")
+  );
+
+const drawSubService: BotSubService<BotCommand> = (bot, command) => {
   bot.on("interactionCreate", async (interaction) => {
     try {
       if (!interaction.isChatInputCommand()) return;
@@ -44,6 +54,12 @@ const service: BotService = (bot, command) => {
       }
     } catch (error) {}
   });
+};
+
+const service: BotService = (bot) => {
+  drawSubService(bot, drawCommand);
+
+  return [drawCommand];
 };
 
 export default service;
