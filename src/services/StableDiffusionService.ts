@@ -18,6 +18,9 @@ const renderMessage = {
     "並且請直接給我英文指令，不需要其他多餘的文字以及解釋，請只給一個指令幾可，只需一項幾可，請開始",
 };
 
+const negative_prompt =
+  "lowres, bad anatomy, bad hands, text, error, missing fingers,extra digit, fewer digits, cropped, worst quality, low quality,normal quality, jpeg artifacts,signature, watermark, username, blurry,artist name, split arm, split finger, extra leg, multiple breasts,(mutated hands and fingers:1.5 ), (long body :1.3), (mutation),(poorly drawn :1.2), bad anatomy, liquid body, liquid tongue, disfigured,malformed, mutated, anatomical nonsense, text font ui, error,malformed hands, long neck, blurred, bad proportions, bad shadow,uncoordinated body, unnatural body, fused breasts, bad breasts,huge breasts, poorly drawn breasts, extra breasts, liquid breasts,heavy breasts, missing breasts, huge haunch, huge thighs, huge calf,bad hands, fused hand, missing hand, disappearing arms, disappearing thigh,disappearing calf, disappearing legs, fused ears, bad ears, poorly drawn ears,extra ears, liquid ears, missing ears, missing finger, broken finger";
+
 const gptDrawCommand = new SlashCommandBuilder()
   .setName("gpt-draw")
   .setDescription("使用ChatGPT 生成指令並讓 stable diffusion 生成圖片")
@@ -54,6 +57,8 @@ const gptDrawSubService: BotSubService<BotCommand> = (bot, command) => {
         try {
           const attachment = await render({
             prompt: reply,
+            negative_prompt,
+            steps: 40,
           });
           await interaction.editReply({
             files: [attachment],
