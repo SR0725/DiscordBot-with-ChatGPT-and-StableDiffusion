@@ -9,12 +9,13 @@ const renderMessage = {
   content:
     "Stable Diffusion 是一個類似於DALLE-2的AI藝術生成模型。" +
     "以下是可以用來生成Stable Diffusion圖像的提示，你可以參考看看：" +
-    "- portait of a homer simpson archer shooting arrow at forest monster, front game card, drark, marvel comics, dark, intricate, highly detailed, smooth, artstation, digital illustration by ruan jia and mandy jurgens and artgerm and wayne barlowe and greg rutkowski and zdislav beksinski" +
+    "- masterpiece, best quality, masterpiece, right arm in the back,good breast shape, (good forearm), underboob, (good wrist), good fabric,hair clip, half naked, elf ear, (good anatomy:1.3), good style,(slight smile), water on ground, grass, blue sky, cloud, nature,cute face, light and shadow effects, volumetric lighting, gold trim,extremely detailed CG unity 8k wallpaper, depth of field, skin details,wet, focused, (necklace:1.2), (earring1.2),(beautiful detailed eyes:1.4), reflective water" +
     "- pirate, concept art, deep focus, fantasy, intricate, highly detailed, digital painting, artstation, matte, sharp focus, illustration, art by magali villeneuve, chippy, ryan yee, rk post, clint cearley, daniel ljunggren, zoltan boros, gabor szikszai, howard lyon, steve argyle, winona nelson" +
     "- ghost inside a hunted room, art by lois van baarle and loish and ross tran and rossdraws and sam yang and samdoesarts and artgerm, digital art, highly detailed, intricate, sharp focus, Trending on Artstation HQ, deviantart, unreal engine 5, 4K UHD image" +
     "I want you to write me a list of detailed prompts exactly about the idea written after IDEA. Follow the structure of the example prompts. This means a very short description of the scene, followed by modifiers divided by commas to alter the mood, style, lighting, and more." +
+    "構圖先做，再做細節，最後才做光影。prompt會按照順序生效，已經固定的結構會很難修正，如果: 紅髮, 金髮  ->  那出來的會是全紅，金色會出不來，所以在詠唱的初期定義好身體結構也很重要，如果初期骨架是歪的，後面要下很多prompt才修的回來，當 [頭 -> 五官 -> 身體骨架 -> 手腳] 都完成後，就可以開始放配件來幫助填空，例如: 項鍊 戒指 手環，最後才開始調光2. prompt有比重  比重很重要，把prompt加上()就可以提高1.1比重，要往上我建議你直接打  (prompt:比重)，例如  (blue eye:1.5)，比重不能超過1.9" +
     "我希望你能根據下面的IDEA，精確地撰寫關於該IDEA的英文詳細提示。請遵循範例提示的結構，即簡短描述場景，然後使用逗號分隔的修飾語改變情緒、風格、燈光等等。" +
-    "並且請直接給我英文指令，不需要其他多餘的文字以及解釋，只需要給一個指令幾可,",
+    "並且請直接給我英文指令，不需要其他多餘的文字以及解釋，請只給一個指令幾可，只需一項幾可，請開始",
 };
 
 const gptDrawCommand = new SlashCommandBuilder()
