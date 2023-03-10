@@ -41,8 +41,8 @@ const chatSubService: BotSubService = (bot) => {
     if (message.author.bot) return;
 
     // 如果是要求繪製圖片的訊息，就回應
-    if (message.content.startsWith("<@1081639245472612372>")) {
-      const rawInput = message.content.replace("<@1081639245472612372>", "");
+    if (message.content.startsWith(`<@${bot.user.id}>`)) {
+      const rawInput = message.content.replace(`<@${bot.user.id}>`, "");
       if (!rawInput) {
         await message.reply({
           embeds: [embed("error")("請輸入文字")],
