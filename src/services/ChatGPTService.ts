@@ -39,6 +39,7 @@ const historyClearSubService: BotSubService<BotCommand> = (bot, command) => {
 const chatSubService: BotSubService = (bot) => {
   bot.on("messageCreate", async (message) => {
     if (message.author.bot) return;
+    if (!("sendTyping" in message.channel)) return;
 
     // 如果是要求繪製圖片的訊息，就回應
     if (message.content.startsWith("<@1081639245472612372>")) {
@@ -49,9 +50,7 @@ const chatSubService: BotSubService = (bot) => {
         });
         return;
       }
-      const msg = await message.reply({
-        embeds: [embed("wait")("FillCast 正在思考…")],
-      });
+      await message.channel.sendTyping();
       try {
         const reply = await chatWithGPT({
           prompt: rawInput,
@@ -59,12 +58,11 @@ const chatSubService: BotSubService = (bot) => {
           withHistory: true,
           systemMessage: systemMessage as Message,
         });
-        await msg.edit({
+        await message.reply({
           embeds: [embed("success")(reply)],
         });
       } catch (error) {
-        resetHistory(msg.author.id);
-        await msg.edit({
+        await message.reply({
           embeds: [embed("error")("發生了未知的錯誤，ChatGPT拒絕回應")],
         });
         console.error(error);
