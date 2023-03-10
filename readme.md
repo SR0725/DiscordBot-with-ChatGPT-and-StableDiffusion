@@ -49,7 +49,7 @@ yarn start
 
 - /src/index.ts - 根目錄，在此處引入所有服務並注入進 Bot 裡頭。
 
-- /.env.local - 配置文件，請記得參考 /.env.example 的格式，並加上自己的 OpenAI API 以及 Discord Bot Token 來新增此文件
+- /.env.local - 配置文件，請記得參考 /.env.example 的格式，並加上自己的 OpenAI API 以及 Discord Bot Token 來新增此文件。
 
 ## 貢獻
 
