@@ -1,5 +1,4 @@
 import { Configuration, OpenAIApi } from "openai";
-import illegalWordFilter from "./illegalWordFilter";
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -72,7 +71,7 @@ async function chatWithGPT({
 
   addHistory("assistant", userId, content);
 
-  return illegalWordFilter(content);
+  return content;
 }
 
 export default chatWithGPT;

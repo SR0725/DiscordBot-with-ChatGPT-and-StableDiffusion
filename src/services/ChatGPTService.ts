@@ -1,6 +1,7 @@
 import BotCommand from "@/models/BotCommand";
 import { BotService, BotSubService } from "@/models/BotService";
 import chatWithGPT, { Message, resetHistory } from "@/utils/chatGPT";
+import embed from "@/utils/embed";
 
 const systemMessage = {
   role: "system",
@@ -43,10 +44,14 @@ const chatSubService: BotSubService = (bot) => {
     if (message.content.startsWith(`<@${bot.user.id}>`)) {
       const rawInput = message.content.replace(`<@${bot.user.id}>`, "");
       if (!rawInput) {
-        await message.reply("請輸入文字");
+        await message.reply({
+          embeds: [embed("error")("請輸入文字")],
+        });
         return;
       }
-      const msg = await message.reply("FillCast 正在思考…");
+      const msg = await message.reply({
+        embeds: [embed("wait")("FillCast 正在思考…")],
+      });
       try {
         const reply = await chatWithGPT({
           prompt: rawInput,
@@ -54,10 +59,14 @@ const chatSubService: BotSubService = (bot) => {
           withHistory: true,
           systemMessage: systemMessage as Message,
         });
-        await msg.edit(reply);
+        await msg.edit({
+          embeds: [embed("success")(reply)],
+        });
       } catch (error) {
         resetHistory(msg.author.id);
-        await msg.edit("發生了未知的錯誤，ChatGPT拒絕回應");
+        await msg.edit({
+          embeds: [embed("error")("發生了未知的錯誤，ChatGPT拒絕回應")],
+        });
         console.error(error);
       }
     }
