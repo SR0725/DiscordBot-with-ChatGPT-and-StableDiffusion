@@ -42,7 +42,9 @@ const gptDrawSubService: BotSubService<BotCommand> = (bot, command) => {
           await interaction.reply("請輸入文字");
           return;
         }
-        await interaction.reply("FillCast 正在將您對圖片的敘述轉化為咒語…");
+        await interaction.reply(
+          `${bot.user.username} 正在將您對圖片的敘述轉化為咒語…`
+        );
 
         const reply = await chatWithGPT({
           prompt,
@@ -52,7 +54,9 @@ const gptDrawSubService: BotSubService<BotCommand> = (bot, command) => {
         });
 
         await interaction.editReply(
-          "FillCast 正在繪製… \n原文:" + prompt + "\n咒術轉換:" + reply
+          `${bot.user.username} 正在繪製：` +
+            `原文: ${prompt}\n` +
+            `咒術轉換: ${reply}`
         );
         try {
           const attachment = await render({
@@ -148,7 +152,11 @@ const drawSubService: BotSubService<BotCommand> = (bot, command) => {
       }
 
       await interaction.reply(
-        `FillCast 正在繪製: \n咒文:\`${rawPrompt}\`\n結界:\`${rawNegative_prompt}\`\n咒文語言:\`${renderProps.sampler_index}\`\n魔能強度:\`${renderProps.cfg_scale}\``
+        `${bot.user.username} 正在繪製: \n` +
+          `咒文:\`${rawPrompt}\`\n` +
+          `結界:\`${rawNegative_prompt}\`\n` +
+          `咒文語言:\`${renderProps.sampler_index}\`\n` +
+          `魔能強度:\`${renderProps.cfg_scale}\``
       );
       try {
         const attachment = await render(renderProps);
@@ -156,7 +164,7 @@ const drawSubService: BotSubService<BotCommand> = (bot, command) => {
           files: [attachment],
         });
       } catch (error) {
-        await interaction.editReply((`繪製出錯：` + error) as string);
+        await interaction.editReply(`繪製出錯：${error}`);
       }
     }
   });
