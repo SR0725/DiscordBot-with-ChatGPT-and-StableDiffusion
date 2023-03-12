@@ -4,6 +4,7 @@ node_modules
 .env.dev
 .env.prod
 openapi-docs.yml
+src/data/prompt.txt
 
 # mac
 .DS_Store
@@ -11,7 +12,3 @@ openapi-docs.yml
 # OS or Editor folders
 .idea
 .vscode
-
-#prisma
-prisma/mssql
-prisma/postgres
