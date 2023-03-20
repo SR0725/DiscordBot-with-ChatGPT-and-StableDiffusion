@@ -95,12 +95,19 @@ const chatSubService: BotSubService = (bot) => {
           role: "system",
           content: getPrompt(),
         };
+
+        const typingTimer = setInterval(async () => {
+          if (!("sendTyping" in message.channel)) return; // TODO 這行不應該需要存在
+          await message.channel.sendTyping();
+        }, 10000);
         const reply = await chatWithGPT({
           prompt: rawInput,
           userId: message.author.id,
           withHistory: true,
           systemMessage: systemMessage as Message,
         });
+        clearInterval(typingTimer);
+
         await message.reply({
           embeds: [embed("success")(reply)],
         });
